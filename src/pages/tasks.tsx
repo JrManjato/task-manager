@@ -1,6 +1,5 @@
 import React, { ChangeEvent, useRef } from 'react';
-import { useTaskManager } from '@/hooks/useTaskManager';
-import {ITask} from "@/utils/Task";
+import { useTaskManager } from '@/store/useTaskManager';
 
 const TaskManager = () => {
     const createTaskRef = useRef<HTMLInputElement>(null);

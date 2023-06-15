@@ -1,5 +1,6 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
+import {useEffect, useState} from "react";
 
 /**
   Calculates the time difference between the server time and client time.
@@ -7,14 +8,42 @@ import { useRouter } from "next/router";
   @param {Date} clientTime - The client time.
   @returns {string} The time difference in the format "{days} days, {hours} hours, {minutes} minutes, {seconds} seconds".
 */
-const calculateTimeDifference = (server: Date, client: Date) => {};
+const calculateTimeDifference = (serverTime: Date, clientTime: Date) => {
+  const timeDiff = clientTime.getTime() - serverTime.getTime();
+  const seconds = Math.floor(timeDiff / 1000) % 60;
+  const minutes = Math.floor(timeDiff / (1000 * 60)) % 60;
+  const hours = Math.floor(timeDiff / (1000 * 60 * 60)) % 24;
+  const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+
+  return `${days} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds`;
+};
 
 
-export default function Home() {
+export default function Home({ currentTime }) {
+  const [serverTime, _setServerTime] = useState(new Date(currentTime));
+  const [clientTime, _setClientTime] = useState(new Date());
+  const [timeDifference, setTimeDifference] = useState('');
+
   const router = useRouter();
   const moveToTaskManager = () => {
     router.push("/tasks");
   }
+
+  useEffect(() => {
+    if (serverTime && clientTime) {
+      const difference = calculateTimeDifference(serverTime, clientTime);
+      setTimeDifference(difference);
+    }
+  }, [serverTime, clientTime]);
+
+  const formattedServerDate = serverTime.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
   return (
     <>
       <Head>
@@ -29,13 +58,13 @@ export default function Home() {
           {/* Display here the server time (DD-MM-AAAA HH:mm)*/}
           <p>
             Server time:{" "}
-            <span className="serverTime">{/* Replace with the value */}</span>
+            <span className="serverTime">{formattedServerDate}</span>
           </p>
 
           {/* Display here the time difference between the server side and the client side */}
           <p>
             Time diff:{" "}
-            <span className="serverTime">{/* Replace with the value */}</span>
+            <span className="serverTime">{timeDifference}</span>
           </p>
         </div>
 
@@ -45,4 +74,14 @@ export default function Home() {
       </main>
     </>
   );
+}
+
+export async function getServerSideProps() {
+  const currentTime = new Date().toISOString();
+
+  return {
+    props: {
+      currentTime,
+    },
+  };
 }
